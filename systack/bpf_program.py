@@ -120,11 +120,15 @@ class BPFProgram:
         def on_syscall(cpu, data, size):
             event = self.bpf['on_syscall'].event(data)
             addrs = self.bpf['user_stack'].walk(event.trace_id)
-            addr = list(addrs)[-1]
+            addrs = list(addrs)
             name = syscall_name(event.syscall).decode('utf-8')
-            print(
-                f'Syscall {name:<16} blamed on 0x{addr:016x} {self.bpf.sym(addr, self.pid)}'
-            )
+            # print(f'Syscall {name:<16} blamed on 0x{addrs[-1]:016x}')
+            print(f'Syscall {name:<16}')
+            for addr in addrs:
+                print(
+                    f'    0x{addr:016x} -> {self.bpf.sym(addr, self.pid, show_offset=True, demangle=False)}'
+                )
+            print()
 
         self.bpf['on_syscall'].open_perf_buffer(on_syscall)
 
@@ -157,11 +161,12 @@ class BPFProgram:
             self.bpf = BPF(text=text, cflags=flags)
 
         self.register_perf_buffers()
-        os.kill(self.pid, signal.SIGUSR1)
+        if self.run:
+            os.kill(self.pid, signal.SIGUSR1)
 
     def event_loop(self) -> None:
         while 1:
             self.bpf.perf_buffer_poll(30)
-            sleep(0.1)
             if self.should_exit:
                 sys.exit()
+            sleep(0.1)

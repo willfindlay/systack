@@ -16,6 +16,7 @@ TRACEPOINT_PROBE(raw_syscalls, sys_enter) {
 
     struct event event = {};
     event.syscall = args->id;
+    //event.trace_id = user_stack.get_stackid((void *)args, BPF_F_USER_STACK | BPF_F_REUSE_STACKID);
     event.trace_id = user_stack.get_stackid((void *)args, BPF_F_USER_STACK);
 
     on_syscall.perf_submit((void *)args, &event, sizeof(event));

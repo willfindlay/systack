@@ -1,0 +1,22 @@
+fstat comparison
+================
+
+gdb:
+#0  0x00007ffff7ea8f79 in __fxstat64 () from /usr/lib/libc.so.6
+#1  0x00007ffff7e2df33 in _IO_file_doallocate () from /usr/lib/libc.so.6
+#2  0x00007ffff7e3cc10 in _IO_doallocbuf () from /usr/lib/libc.so.6
+#3  0x00007ffff7e3bda8 in __GI__IO_file_overflow () from /usr/lib/libc.so.6
+#4  0x00007ffff7e3ae56 in __GI__IO_file_xsputn () from /usr/lib/libc.so.6
+#5  0x00007ffff7e305b8 in puts () from /usr/lib/libc.so.6
+#6  0x0000555555555259 in main (argc=1, argv=0x7fffffffdef8) at driver.c:14
+
+ebpf:
+Syscall fstat
+    0x00007ffff7ea8f79 -> b'__fxstat64+0x19'
+
+- stack trace missing below call to __fxstat64
+- seems to be a bug with implemenation of eBPF stack walking
+    - https://github.com/iovisor/bcc/issues/2887
+    - https://bugzilla.kernel.org/show_bug.cgi?id=207777
+- possible to walk up the stack manually?
+    - like http://www.brendangregg.com/blog/2016-01-18/ebpf-stack-trace-hack.html
